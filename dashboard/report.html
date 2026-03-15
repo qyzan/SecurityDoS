@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Security DoS – Test Report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Additional styles for report */
+    .report-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .meta-box { background: var(--surface); padding: 16px; border-radius: var(--radius); border: 1px solid var(--border); }
+    .meta-label { font-size: 0.75rem; color: var(--text3); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .meta-value { font-family: 'JetBrains Mono', monospace; font-size: 1rem; color: var(--text); word-break: break-all; }
+    .meta-value.highlight { color: var(--accent2); }
+
+    .section-title { font-size: 1.2rem; font-weight: 600; color: var(--text); margin: 32px 0 16px; display: flex; align-items: center; gap: 8px; }
+    .section-title::before { content: ''; display: block; width: 4px; height: 18px; background: var(--accent); border-radius: 2px; }
+
+    .kpi-grid-large { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+    .kpi-card-large { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; position: relative; overflow: hidden; }
+    .kpi-card-large::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--cyan)); opacity: 0.5; }
+    .kpi-card-large .kpi-value { font-size: 2.2rem; margin: 12px 0 8px; font-weight: 700; color: var(--text); font-family: 'JetBrains Mono', monospace; }
+    .kpi-card-large .kpi-label { font-size: 0.75rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; }
+    .kpi-card-large .kpi-sub { font-size: 0.8rem; color: var(--text3); font-family: 'JetBrains Mono', monospace; margin-top: 4px; }
+
+    table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); margin-bottom: 24px;}
+    th { text-align: left; padding: 12px 16px; background: var(--bg3); font-size: 0.8rem; color: var(--text2); text-transform: uppercase; border-bottom: 1px solid var(--border); }
+    td { padding: 12px 16px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) { background: rgba(0,0,0,0.1); }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-brand">
+      <div class="brand-icon">⬡</div>
+      <div>
+        <div class="brand-name">Security DoS</div>
+        <div class="brand-sub">Test Execution Report</div>
+      </div>
+    </div>
+    <div class="header-controls">
+      <button class="btn btn-secondary" onclick="window.print()">🖨️ Print Report</button>
+      <button class="btn btn-primary" onclick="window.close()">Close Custom View</button>
+    </div>
+  </header>
+
+  <main class="main" style="max-width: 1200px; padding: 40px 28px;">
+    
+    <div id="loading" style="text-align: center; padding: 60px; color: var(--text3); font-size: 1.2rem;">
+      <span class="pulse-dot" style="display:inline-block; width:12px; height:12px; margin-right:10px; background:var(--accent);"></span> Loading Report Data...
+    </div>
+
+    <div id="reportContent" style="display: none;">
+      <section class="report-meta">
+        <div class="meta-box">
+          <div class="meta-label">Test ID</div>
+          <div class="meta-value highlight" id="r-testid">...</div>
+        </div>
+        <div class="meta-box">
+          <div class="meta-label">Target</div>
+          <div class="meta-value" id="r-target">...</div>
+        </div>
+        <div class="meta-box">
+          <div class="meta-label">Date Generated</div>
+          <div class="meta-value" id="r-date">...</div>
+        </div>
+        <div class="meta-box">
+          <div class="meta-label">Operator</div>
+          <div class="meta-value" id="r-operator">...</div>
+        </div>
+      </section>
+
+      <h2 class="section-title">Test Configuration</h2>
+      <table>
+        <tr><th>Test Type</th><td id="c-type"></td><th>Method</th><td id="c-method"></td></tr>
+        <tr><th>Target Load</th><td id="c-rps"></td><th>Total Duration</th><td id="c-dur"></td></tr>
+        <tr><th>HTTP/2</th><td id="c-h2"></td><th>Keep-Alive</th><td id="c-ka"></td></tr>
+        <tr><th>Workers</th><td id="c-workers"></td><th>User-Agent</th><td id="c-ua"></td></tr>
+        <tr id="c-headers-row" style="display:none;"><th style="vertical-align: top; padding-top: 16px;">Custom Headers</th><td colspan="3" id="c-headers" style="padding: 12px 16px;"></td></tr>
+      </table>
+
+      <h2 class="section-title">Results Summary</h2>
+      <div class="kpi-grid-large">
+        <div class="kpi-card-large">
+          <div class="kpi-label">Total Requests</div>
+          <div class="kpi-value highlight" style="color:var(--text);" id="s-req">0</div>
+          <div class="kpi-sub" id="s-succ">Success: 0 (0%)</div>
+        </div>
+        <div class="kpi-card-large">
+          <div class="kpi-label">Max Performance</div>
+          <div class="kpi-value" id="s-peak-rps">0</div>
+          <div class="kpi-sub" id="s-peak-tps">Max TPS: 0</div>
+        </div>
+        <div class="kpi-card-large" id="s-card-err">
+          <div class="kpi-label">Error Rate</div>
+          <div class="kpi-value" id="s-err">0.00%</div>
+          <div class="kpi-sub" id="s-tmo">Timeouts: 0</div>
+          <div id="s-err-breakdown" style="font-size: 0.7rem; color: var(--text3); margin-top: 8px; line-height: 1.2;"></div>
+        </div>
+        <div class="kpi-card-large" id="s-card-lat">
+          <div class="kpi-label">Average Latency</div>
+          <div class="kpi-value" id="s-lat">0 ms</div>
+          <div class="kpi-sub" id="s-p99">p99: 0 ms</div>
+        </div>
+      </div>
+
+      <h2 class="section-title">Security Analysis</h2>
+      <div class="panel" style="margin-bottom: 24px;">
+        <div class="analysis-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+          <div class="analysis-item"><div class="analysis-label">Breaking Pnt</div><div class="analysis-value" id="a-brk">—</div></div>
+          <div class="analysis-item"><div class="analysis-label">Latency Degrd.</div><div class="analysis-value" id="a-ld">—</div></div>
+          <div class="analysis-item"><div class="analysis-label">Rate Limit Trigger</div><div class="analysis-value" id="a-rl">—</div></div>
+          <div class="analysis-item"><div class="analysis-label">Recovery</div><div class="analysis-value" id="a-rec">—</div></div>
+        </div>
+        
+        <div style="margin-top: 20px;">
+          <h3 class="meta-label">Observations</h3>
+          <div id="a-obs" class="observations-list" style="max-height: none; margin-top: 10px;"></div>
+        </div>
+      </div>
+
+      <h2 class="section-title">Performance Timeline</h2>
+      <div class="charts-grid" style="grid-template-columns: 1fr; gap: 24px;">
+        <div class="chart-card chart-wide">
+          <div class="chart-header">
+            <span class="chart-title">Throughput (RPS vs TPS)</span>
+            <span class="chart-badge">Load</span>
+          </div>
+          <canvas id="rpsChart"></canvas>
+        </div>
+        <div class="chart-card chart-wide">
+          <div class="chart-header">
+            <span class="chart-title">Latency Overview</span>
+            <span class="chart-badge">ms</span>
+          </div>
+          <canvas id="latChart"></canvas>
+        </div>
+        <div class="chart-card chart-wide">
+          <div class="chart-header">
+            <span class="chart-title">Error Rate</span>
+            <span class="chart-badge">%</span>
+          </div>
+          <canvas id="errChart"></canvas>
+        </div>
+        <div class="chart-card chart-wide">
+          <div class="chart-header">
+            <span class="chart-title">HTTP Status Distribution</span>
+            <span class="chart-badge">Count</span>
+          </div>
+          <canvas id="scChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+  </main>
+  
+  <footer class="footer">
+    Red Team v1.0 &nbsp;•&nbsp; Authorized Security Testing Only &nbsp;•&nbsp; Detail Report
+  </footer>
+
+  <script src="report.js"></script>
+</body>
+</html>

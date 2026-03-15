@@ -1,0 +1,47 @@
+target: https://staging.company.internal/api/health
+method: GET
+test_type: ramp
+description: "Adaptive ramp test - gradually increase RPS until failure threshold"
+max_workers: 50000
+http2: true
+keep_alive: true
+headers:
+  X-Test-Mode: Ramp
+  X-Adaptive-Control: "active"
+
+# Adaptive mode: auto-generates stages from 1000 to adaptive_max_rps
+# in steps of adaptive_step_rps, each lasting the stage duration below.
+adaptive: true
+adaptive_max_rps: 30000
+adaptive_step_rps: 2000
+failure_threshold: 0.05   # Stop adaptive ramp when error rate > 5%
+
+# Fallback explicit stages (used if adaptive: false)
+stages:
+  - name: Ramp-1K
+    duration: 60s
+    rps: 1000
+
+  - name: Ramp-3K
+    duration: 60s
+    rps: 3000
+
+  - name: Ramp-6K
+    duration: 60s
+    rps: 6000
+
+  - name: Ramp-10K
+    duration: 60s
+    rps: 10000
+
+  - name: Ramp-15K
+    duration: 60s
+    rps: 15000
+
+  - name: Ramp-20K
+    duration: 60s
+    rps: 20000
+
+  - name: Ramp-25K
+    duration: 60s
+    rps: 25000

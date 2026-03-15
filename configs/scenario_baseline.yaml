@@ -1,0 +1,23 @@
+target: https://staging.company.internal/api/health
+method: GET
+test_type: baseline
+description: "Baseline test - normal traffic to establish reference metrics"
+max_workers: 1000
+http2: false
+keep_alive: true
+headers:
+  X-Test-Mode: Baseline
+  Accept-Language: en-US,en;q=0.9
+
+stages:
+  - name: Baseline-Low
+    duration: 60s
+    rps: 50
+
+  - name: Baseline-Medium
+    duration: 60s
+    rps: 200
+
+  - name: Baseline-High
+    duration: 60s
+    rps: 500

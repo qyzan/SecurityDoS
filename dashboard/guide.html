@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Guide – Security DoS Red Team Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <style>
+    body { background: #0f172a; color: #f8fafc; line-height: 1.6; }
+    .guide-container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+    .guide-header { text-align: center; margin-bottom: 60px; }
+    .guide-header h1 { font-size: 2.5rem; margin-bottom: 10px; color: #6366f1; }
+    .guide-section { margin-bottom: 50px; background: rgba(30, 41, 59, 0.5); padding: 30px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+    .guide-section h2 { font-size: 1.5rem; color: #38bdf8; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+    .guide-section h3 { font-size: 1.1rem; color: #94a3b8; margin-top: 20px; margin-bottom: 10px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .metric-box { background: #0f172a; padding: 15px; border-radius: 8px; border-left: 4px solid #6366f1; }
+    .metric-name { font-weight: 600; color: #fff; display: block; margin-bottom: 5px; }
+    .highlight { color: #f59e0b; font-weight: 500; }
+    code { font-family: 'JetBrains Mono', monospace; background: #1e293b; padding: 2px 6px; border-radius: 4px; color: #e2e8f0; }
+    .back-btn { display: inline-block; margin-bottom: 20px; color: #94a3b8; text-decoration: none; font-size: 0.9rem; }
+    .back-btn:hover { color: #fff; }
+    ul { padding-left: 20px; }
+    li { margin-bottom: 8px; }
+    .tag { font-size: 0.75rem; padding: 2px 8px; border-radius: 99px; background: #334155; color: #cbd5e1; vertical-align: middle; }
+    a { color: #38bdf8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <div class="guide-container">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <a href="index.html" class="back-btn">&larr; Back to Dashboard</a>
+        <a href="reports.html" class="back-btn">📂 Report History</a>
+    </div>
+    
+    <header class="guide-header">
+      <h1>Security DoS Guide</h1>
+      <p>Platform Pengujian Ketahanan Infrastruktur & Keamanan Cyber v1.0</p>
+    </header>
+
+    <!-- Section 1: Overview -->
+    <section class="guide-section">
+      <h2>⬡ Overview</h2>
+      <p>
+        <strong>Security DoS</strong> adalah tool <em>Load Testing</em> dan <em>DoS Simulation</em> profesional yang dirancang untuk membantu tim keamanan (Red Team) dan DevOps mengukur batas maksimal infrastruktur mereka. 
+        Tool ini tidak hanya mengirimkan traffic, tetapi juga menganalisis perilaku server secara real-time untuk menemukan titik kegagalan (Breaking Point).
+      </p>
+    </section>
+
+    <!-- Section 2: Core Metrics -->
+    <section class="guide-section">
+      <h2>📊 Memahami Metrik</h2>
+      <div class="grid-2">
+        <div class="metric-box">
+          <span class="metric-name">RPS (Requests Per Second)</span>
+          <p>Total upaya request yang dikirim ke server. Ini mencakup Sukses, Error, dan <span class="highlight">Timeout</span>.</p>
+        </div>
+        <div class="metric-box">
+          <span class="metric-name">TPS (Transactions Per Second)</span>
+          <p>Menghitung semua transaksi yang <span class="highlight">Sukses (HTTP 2xx: 200, 201, 204, dll)</span>. Digunakan untuk mengukur kapasitas pengolahan data riil server.</p>
+        </div>
+        <div class="metric-box">
+          <span class="metric-name">Latency (ms)</span>
+          <p>Waktu respon server dalam milidetik. Kami mengukur hingga <span class="highlight">p99</span> (99% pengguna) untuk akurasi audit.</p>
+        </div>
+        <div class="metric-box">
+          <span class="metric-name">Active Workers</span>
+          <p>Jumlah antrean internal (Goroutines) yang sedang menunggu jawaban server. Jika penuh (10k), server dipastikan macet.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Test Profiles -->
+    <section class="guide-section">
+      <h2>🎯 Profil Pengujian</h2>
+      <ul>
+        <li><strong>Baseline:</strong> Pengujian traffic normal untuk menentukan standar performa sistem saat sehat.</li>
+        <li><strong>Stress Test:</strong> Menaikkan beban secara bertahap hingga server tumbang untuk mengetahui kapasitas maksimal.</li>
+        <li><strong>Spike Test:</strong> Memberikan beban kejutan yang sangat besar dalam waktu singkat (mensimulasikan serangan DoS tiba-tiba).</li>
+        <li><strong>Ramp (Adaptive):</strong> Tool akan menaikkan RPS secara otomatis berdasarkan kemampuan server merespons.</li>
+        <li><strong>Custom:</strong> Kebebasan penuh untuk mengatur RPS, Durasi, dan Timeout secara manual.</li>
+      </ul>
+      <div style="font-size: 0.8rem; color: #94a3b8; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; margin-top: 15px;">
+        <p style="margin-bottom: 5px;"><span class="tag">Pro Tip</span> Tambahkan <code>scenario_*.yaml</code> ke folder <code>configs/</code> untuk profil kustom baru.</p>
+        <p style="margin-bottom: 5px;"><strong>User-Agent:</strong> Jika diisi, prefix kustom akan digunakan. Jika Evasion AKTIF, suffix acak akan ditambahkan otomatis.</p>
+        <p style="margin-bottom: 0;"><strong>Note:</strong> Input Header di UI akan menimpa (override) header bawaan profil jika Key sama.</p>
+      </div>
+    </section>
+
+    <!-- Section 4: Smart Analysis -->
+    <section class="guide-section">
+      <h2>🔍 Fitur Smart Analysis</h2>
+      <p>Tool ini menggunakan algoritma analisis otomatis untuk mendeteksi batas operasional teknis dari sistem target:</p>
+      
+      <h3>1. Breaking Point (Threshold: 5%)</h3>
+      <p>
+        Berdasarkan ambang batas kesalahan (<strong>Error Rate</strong>). Sistem dianggap mulai gagal secara struktural jika tingkat kesalahan 
+        melampaui <span class="highlight">5%</span> secara konsisten selama minimal 3 detik. Kondisi ini biasanya menandakan 
+        kehabisan sumber daya (CPU/RAM/Cores) pada server backend atau kelebihan batas koneksi database.
+      </p>
+
+      <h3>2. Latency Degradation (Threshold: Configurable, default 2.0s)</h3>
+      <p>
+        Pemantauan kinerja ketersediaan berbasis waktu respons. Latensi rata-rata di atas nilai 
+        <span class="highlight">Latency Threshold</span> yang Anda atur di Dashboard (default: <strong>2000 ms</strong>) 
+        diidentifikasi sebagai titik degradasi layanan yang signifikan. Keterlambatan ini sering kali memicu penumpukan antrean koneksi 
+        (<em>Connection Pool Exhaustion</em>) yang mengarah pada kelumpuhan sistem (<em>Cascading Failure</em>).
+      </p>
+
+      <h3>3. Security Interception (Threshold: 15%)</h3>
+      <p>
+        Deteksi pembatasan sistem keamanan. Jika lebih dari <span class="highlight">15%</span> dari total traffic 
+        dibalas dengan kode HTTP blokir (contoh: 429 Too Many Requests atau 403 Forbidden), 
+        sistem menyimpulkan adanya perangkat perlindungan aktif yang menahan laju serangan (seperti <em>Rate Limiter</em>, <em>WAF</em>, atau <em>DDoS Protection</em>).
+      </p>
+    </section>
+
+    <!-- Section 5: Emergency Control -->
+    <section class="guide-section" style="border-left: 4px solid #ef4444;">
+      <h2>⚡ Emergency Control (Kill Switch)</h2>
+      <p>
+        Tombol <strong>Kill Switch</strong> adalah fitur keamanan prioritas tinggi yang dirancang sebagai "Rem Darurat" untuk menghentikan pengujian secara instan.
+      </p>
+      <ul>
+        <li><strong>Berhenti Instan:</strong> Berbeda dengan tombol "Stop" biasa, Kill Switch menghentikan semua goroutine pengirim traffic dalam waktu <span class="highlight">&lt; 1 detik</span>.</li>
+        <li><strong>Status Terkunci (Locked):</strong> Setelah diaktifkan, dashboard akan masuk ke status <code>Kill Switch Active</code> dan memblokir upaya pengaktifan tes baru untuk mencegah kesalahan operasional.</li>
+        <li><strong>Cara Reset:</strong> Untuk kembali ke status normal, Anda cukup menekan tombol <strong>⚡ Kill Switch</strong> sekali lagi (yang saat itu berwarna merah) untuk membuka kunci sistem.</li>
+      </ul>
+      <p><em>Gunakan fitur ini segera jika Anda melihat sistem target mulai mengalami kegagalan fatal yang tidak terduga.</em></p>
+    </section>
+
+    <!-- Section 6: Security & Safety -->
+    <section class="guide-section">
+      <h2>⚠️ Keselamatan & Etika</h2>
+      <p>
+        Gunakan tool ini hanya pada infrastruktur yang Anda miliki atau telah mendapatkan izin tertulis (Authorized Testing). 
+        Selalu pantau metrik real-time dan jangan tinggalkan sistem saat pengujian stress sedang berlangsung.
+      </p>
+    </section>
+
+    <!-- Section 7: Methodology & References -->
+    <section class="guide-section" id="references">
+      <h2>📚 Metodologi & Referensi Utama</h2>
+      <p>Analisis dan parameter pengujian dalam Security DoS dikembangkan berdasarkan riset dan standar industri berikut:</p>
+      <ul>
+        <li>
+          <a href="https://sre.google/sre-book/service-level-objectives/" target="_blank">Google SRE Book: Service Level Objectives</a> 
+          — Dasar penentuan <em>Error Budget</em> dan ketersediaan sistem.
+        </li>
+        <li>
+          <a href="https://iso25000.com/index.php/en/iso-25000-standards/iso-25010" target="_blank">ISO/IEC 25010: Quality Models</a> 
+          — Standar internasional untuk evaluasi kualitas sistem dan perangkat lunak.
+        </li>
+        <li>
+          <a href="https://www.nngroup.com/articles/response-times-3-important-limits/" target="_blank">Nielsen Norman Group: Response Time Limits</a> 
+          — Standar UX untuk batas waktu tunggu manusia.
+        </li>
+        <li>
+          <a href="https://web.dev/articles/lcp" target="_blank">Google Web Vitals: LCP Thresholds</a> 
+          — Standar modern untuk mengukur performa pemuatan halaman web.
+        </li>
+        <li>
+          <strong>Kubernetes Health Check Patterns</strong> — Metodologi <em>Consecutive Failure</em> untuk validasi status sistem.
+        </li>
+      </ul>
+    </section>
+
+    <footer style="text-align: center; color: #64748b; font-size: 0.8rem; margin-top: 40px; padding-bottom: 40px;">
+      Security DoS Platform v1.0 &copy; 2026. Authorized Security Testing Only.
+    </footer>
+  </div>
+
+</body>
+</html>

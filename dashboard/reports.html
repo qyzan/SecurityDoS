@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Security DoS – Report History</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <style>
+    .reports-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .reports-table th, .reports-table td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .reports-table th {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .reports-table tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: inline-block;
+    }
+    .badge-success { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+    .badge-warn { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+    .badge-error { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    
+    .search-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .search-input {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      outline: none;
+      font-family: inherit;
+    }
+    .search-input:focus {
+      border-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-brand">
+        <div class="brand-icon">⬡</div>
+        <div>
+          <div class="brand-name">Security DoS</div>
+          <div class="brand-sub">Report History</div>
+        </div>
+      </div>
+      <div class="header-controls">
+        <button class="btn btn-secondary" style="border-color: rgba(255,255,255,0.1); margin-right: 10px;"
+          onclick="window.location.href='index.html'">🏠 Dashboard</button>
+        <button class="btn btn-secondary" style="border-color: rgba(255,255,255,0.1); margin-right: 10px;"
+          onclick="window.open('guide.html', '_blank')">📖 Guide</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="panel">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <div class="panel-title" style="margin:0;">📂 Saved Reports</div>
+            <button class="btn btn-secondary" onclick="fetchReports()">🔄 Refresh</button>
+        </div>
+
+        <div class="search-row">
+            <input type="text" id="searchInput" class="search-input" placeholder="Filter by target or test ID..." oninput="filterReports()">
+        </div>
+
+        <div style="overflow-x:auto;">
+            <table class="reports-table">
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Target URL</th>
+                        <th>Test Type</th>
+                        <th>Success</th>
+                        <th>File Size</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="reportsBody">
+                    <!-- Rows populated by logic -->
+                    <tr>
+                        <td colspan="6" style="text-align:center; padding:40px; color:var(--muted);">Loading reports...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>&copy; 2026 Red Team Internal Tool • <span id="statusPing" class="status-dot"></span> System Connected</p>
+    </footer>
+  </div>
+
+  <script src="reports.js"></script>
+</body>
+</html>

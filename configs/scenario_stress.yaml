@@ -1,0 +1,35 @@
+target: https://staging.company.internal/api/health
+method: GET
+test_type: stress
+description: "Stress test - push beyond normal capacity to find breaking point"
+max_workers: 20000
+http2: false
+keep_alive: true
+headers:
+  X-Test-Mode: Stress
+  X-Performance-Check: "true"
+
+stages:
+  - name: Warm-up
+    duration: 30s
+    rps: 500
+
+  - name: Load
+    duration: 60s
+    rps: 2000
+
+  - name: Stress
+    duration: 60s
+    rps: 8000
+
+  - name: Over-stress
+    duration: 30s
+    rps: 15000
+
+  - name: Maximum
+    duration: 10s
+    rps: 25000
+
+  - name: Cool-down
+    duration: 30s
+    rps: 200

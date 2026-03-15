@@ -1,0 +1,31 @@
+server:
+  addr: ":8090"
+
+safety:
+  # Allowlist: only these hosts may be targeted. Exact match or suffix match.
+  allowed_targets:
+    - api.test.internal
+    - localhost
+    - 127.0.0.1
+
+  # Hard cap on requests per second regardless of scenario
+  max_rps: 50000
+
+  # Maximum duration for any single test run (e.g. "2h", "30m")
+  max_duration: "2h"
+
+  # Bearer tokens that authorize API access. Leave empty to disable auth.
+  auth_tokens:
+    - "your_secret"
+
+logging:
+  # Path to JSON lines audit log. Auto-named if empty.
+  path: ""
+
+analysis:
+  # Threshold for "Breaking Point" detection (0.05 = 5% error rate)
+  breaking_point_rate: 0.05
+  # Threshold for latency degradation warnings in ms
+  latency_threshold_ms: 2000.0
+  # Threshold for "Security Interception" detection (0.15 = 15% 4xx codes)
+  security_trigger_rate: 0.15

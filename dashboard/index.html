@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Security DoS – Security Testing Dashboard</title>
+  <meta name="description"
+    content="Real-time infrastructure resilience testing dashboard for authorized security testing." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <!-- ──────────────────────────── HEADER ──────────────────────────── -->
+  <header class="header">
+    <div class="header-brand">
+      <div class="brand-icon">⬡</div>
+      <div>
+        <div class="brand-name">Security DoS</div>
+        <div class="brand-sub">Red Team Platform</div>
+      </div>
+    </div>
+    <div class="header-controls">
+      <div class="status-badge" id="statusBadge">
+        <span class="pulse-dot"></span>
+        <span id="statusText">Idle</span>
+      </div>
+      <div class="test-meta" id="testMeta" style="display:none">
+        <span class="badge badge-blue" id="testIdBadge"></span>
+        <span class="badge badge-purple" id="stageLabel"></span>
+      </div>
+      <button class="btn btn-secondary" style="border-color: rgba(255,255,255,0.1); margin-right: 10px;"
+        onclick="window.open('reports.html', '_blank')">📂 Reports</button>
+      <button class="btn btn-secondary" style="border-color: rgba(255,255,255,0.1); margin-right: 10px;"
+        onclick="window.open('guide.html', '_blank')">📖 Guide</button>
+      <button class="btn btn-secondary" style="border-color: rgba(255,255,255,0.1); margin-right: 10px;"
+        onclick="shutdownServer()">⏻ Exit</button>
+      <button class="btn btn-danger" id="killBtn" onclick="killSwitch()">⚡ Kill Switch</button>
+    </div>
+  </header>
+
+  <!-- ──────────────────────────── MAIN ──────────────────────────── -->
+  <main class="main">
+
+    <!-- ═══ SETUP VIEW ═══ -->
+    <section id="setupView" class="setup-grid">
+      <div class="panel setup-panel">
+        <div class="panel-title">⚙️ Configure Your Test</div>
+
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label>Target URL(s) <span style="color:#64748b; font-weight:400; font-size:0.8rem;">— one per line for
+                Batch Mode</span></label>
+            <textarea id="inpTarget" class="input textarea-small" rows="3"
+              placeholder="https://api-a.example.com&#10;https://api-b.example.com"></textarea>
+          </div>
+          <div class="form-group flex-1">
+            <label>HTTP Method</label>
+            <select id="inpMethod" class="input">
+              <option value="GET">GET</option>
+              <option value="POST">POST</option>
+              <option value="PUT">PUT</option>
+              <option value="MIXED">GET/POST</option>
+              <option value="RANDOM">Random</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label>Test Profile <a href="profiles.html" target="_blank" class="info-link" title="See Profiles Info">ⓘ
+                Info</a></label>
+            <select id="inpProfile" class="input" onchange="onProfileChange()">
+              <option value="custom">Custom (Manual)</option>
+              <option value="baseline">Baseline (Fixed Static)</option>
+              <option value="stress">Stress (Fixed Static)</option>
+              <option value="spike">Spike (Fixed Static)</option>
+              <option value="ramp">Ramp (Adaptive Static)</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex: 0 0 140px;">
+            <label>Latency Threshold</label>
+            <div class="input-group">
+              <input type="number" id="inpLatencyThresh" class="input" placeholder="2000" value="2000"
+                style="width:80px;" />
+              <span style="padding: 0 6px; color: #94a3b8; align-self: center; font-size: 0.75rem;">ms</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="customInputsRow" class="form-row">
+          <div class="form-group" style="flex: 1.2; min-width: 140px;">
+            <label>Input Mode</label>
+            <select id="inpMode" class="input" onchange="onModeChange()">
+              <option value="rps">Fixed RPS/TPS</option>
+              <option value="total">Target Total Requests</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex: 2; min-width: 200px;">
+            <label id="lblRps">RPS/TPS Value</label>
+            <div class="input-group">
+              <input type="number" id="inpRps" class="input" placeholder="e.g. 5000" value="" />
+              <select id="inpUnit" class="input select-unit">
+                <option value="RPS">RPS</option>
+                <option value="TPS">TPS</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="flex: 0.8; min-width: 100px;">
+            <label>Stage Duration</label>
+            <input type="text" id="inpDuration" class="input" placeholder="60s" value="60s" />
+          </div>
+          <div class="form-group" style="flex: 0.8; min-width: 100px;">
+            <label>Req. Timeout</label>
+            <input type="text" id="inpTimeout" class="input" placeholder="30s" value="30s" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label>Token Akses</label>
+            <input type="password" id="apiToken" class="input" placeholder="Token Akses" />
+          </div>
+          <div class="form-group flex-1">
+            <label>Operator Name</label>
+            <input type="text" id="operatorName" class="input" placeholder="e.g. security-team-lead" />
+          </div>
+          <div class="form-group flex-1">
+            <label>User-Agent Prefix</label>
+            <input type="text" id="inpUA" class="input" placeholder="e.g. Dos Testing" value="" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label>Custom Headers (Key: Value per line)</label>
+            <textarea id="inpHeaders" class="input textarea-small"
+              placeholder="X-Custom-Auth: token123&#10;Origin: https://example.com"></textarea>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label class="toggle-label"><input type="checkbox" id="inpHttp2" checked> Use HTTP/2</label>
+          <label class="toggle-label"><input type="checkbox" id="inpKeepAlive" checked> Keep-Alive</label>
+          <label class="toggle-label"><input type="checkbox" id="inpEvasion"> WAF Evasion</label>
+          <label class="toggle-label"><input type="checkbox" id="inpFollowRedirect"> Follow Redirect</label>
+        </div>
+
+        <div class="btn-row" style="margin-top: 20px;">
+          <button class="btn btn-primary" onclick="startTest()">▶ Start Test</button>
+          <div id="apiMessage" class="api-message"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ DASHBOARD VIEW (Hidden until test runs) ═══ -->
+    <div id="dashboardView" class="hidden" style="display: flex; flex-direction: column; gap: 24px;">
+
+      <!-- ═══ BATCH INFO PANEL (only visible in batch mode) ═══ -->
+      <div id="batchInfoPanel" class="panel hidden" style="border-left: 4px solid #6366f1;">
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+          <div class="panel-title" style="margin:0;">🔁 Batch Mode</div>
+          <div id="batchProgressText" style="color:#94a3b8; font-size:0.85rem;">Testing 0 of 0</div>
+          <div id="batchCountdown" style="color:#f59e0b; font-size:0.85rem; font-weight:600;"></div>
+        </div>
+        <div id="batchUrlList" style="margin-top:14px; display:flex; flex-direction:column; gap:6px;"></div>
+        <div id="batchReportButtons" style="margin-top:14px; display:flex; flex-wrap:wrap; gap:8px;"></div>
+      </div>
+
+      <!-- ═══ KPIs ═══ -->
+      <section class="kpi-grid">
+        <div class="kpi-card" id="kpi-rps">
+          <div class="kpi-label">Requests/sec (RPS)</div>
+          <div class="kpi-value" id="kv-rps">0</div>
+          <div class="kpi-sub" id="ks-rps">Total Sent</div>
+        </div>
+        <div class="kpi-card" id="kpi-tps">
+          <div class="kpi-label">Trans/sec (TPS)</div>
+          <div class="kpi-value" id="kv-tps">0</div>
+          <div class="kpi-sub" id="ks-tps">Success Only</div>
+        </div>
+        <div class="kpi-card" id="kpi-lat">
+          <div class="kpi-label">Avg Latency</div>
+          <div class="kpi-value" id="kv-lat">0 ms</div>
+          <div class="kpi-sub" id="ks-lat">p95: 0 ms</div>
+        </div>
+        <div class="kpi-card" id="kpi-err">
+          <div class="kpi-label">Error Rate</div>
+          <div class="kpi-value" id="kv-err">0.00%</div>
+          <div class="kpi-sub" id="ks-err">Timeouts: 0</div>
+        </div>
+        <div class="kpi-card" id="kpi-total">
+          <div class="kpi-label">Total Requests</div>
+          <div class="kpi-value" id="kv-total">0</div>
+          <div class="kpi-sub" id="ks-total">Success: 0</div>
+        </div>
+        <div class="kpi-card" id="kpi-workers">
+          <div class="kpi-label">Active Workers</div>
+          <div class="kpi-value" id="kv-workers">0</div>
+          <div class="kpi-sub">Goroutines</div>
+        </div>
+        <div class="kpi-card" id="kpi-p99">
+          <div class="kpi-label">p99 Latency</div>
+          <div class="kpi-value" id="kv-p99">0 ms</div>
+          <div class="kpi-sub" id="ks-p99">Max: 0 ms</div>
+        </div>
+      </section>
+
+      <!-- ═══ CHARTS ═══ -->
+      <section class="charts-grid">
+        <div class="chart-card chart-wide">
+          <div class="chart-header">
+            <span class="chart-title">Throughput (RPS vs TPS)</span>
+            <span class="chart-badge">Live</span>
+          </div>
+          <canvas id="rpsChart"></canvas>
+        </div>
+        <div class="chart-card chart-wide">
+          <div class="chart-header">
+            <span class="chart-title">Latency Percentiles</span>
+            <span class="chart-badge">ms</span>
+          </div>
+          <canvas id="latChart"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <span class="chart-title">Error Rate %</span>
+            <span class="chart-badge">%</span>
+          </div>
+          <canvas id="errChart"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <span class="chart-title">HTTP Status Distribution</span>
+            <span class="chart-badge">Count</span>
+          </div>
+          <canvas id="scChart"></canvas>
+        </div>
+      </section>
+
+      <!-- ═══ BOTTOM PANELS ═══ -->
+      <section class="bottom-grid">
+
+        <!-- Control Panel -->
+        <div class="panel" id="controlPanel">
+          <div class="panel-title">🎛️ Test Control</div>
+          <div class="btn-row" style="margin-top: 10px;">
+            <button class="btn btn-secondary" onclick="stopTest()">■ Stop Test</button>
+          </div>
+          <div id="controlMessage" class="api-message"></div>
+        </div>
+
+        <!-- Post-Test Action Panel (Hidden during test) -->
+        <div class="panel" id="postTestPanel" style="display: none;">
+          <div class="panel-title">🏁 Test Completed</div>
+          <div class="btn-row" style="margin-top: 10px;">
+            <button class="btn btn-primary" onclick="resetToSetup()">➕ New Test</button>
+            <button class="btn btn-secondary" onclick="viewLatestReport()">📄 View Report</button>
+          </div>
+        </div>
+
+        <!-- Analysis Panel -->
+        <div class="panel">
+          <div class="panel-title">🔍 Analysis</div>
+          <div class="analysis-grid">
+            <div class="analysis-item">
+              <div class="analysis-label">Breaking Point</div>
+              <div class="analysis-value" id="an-breaking">—</div>
+            </div>
+            <div class="analysis-item">
+              <div class="analysis-label">Latency Degradation</div>
+              <div class="analysis-value" id="an-latdeg">—</div>
+            </div>
+            <div class="analysis-item">
+              <div class="analysis-label">Rate Limit Trigger</div>
+              <div class="analysis-value" id="an-rl">—</div>
+            </div>
+            <div class="analysis-item">
+              <div class="analysis-label">Recovery Observed</div>
+              <div class="analysis-value" id="an-recovery">—</div>
+            </div>
+          </div>
+          <div class="panel-title" style="margin-top:20px">📋 Observations</div>
+          <div id="observationsList" class="observations-list">
+            <div class="obs-item obs-empty">Run a test to see analysis observations.</div>
+          </div>
+          <div class="panel-title" style="margin-top:20px">📊 Status Code Breakdown</div>
+          <div id="statusCodeTable" class="sc-table">
+            <div class="obs-item obs-empty">No data yet.</div>
+          </div>
+        </div>
+
+        <!-- Log Panel -->
+        <div class="panel panel-log">
+          <div class="panel-title">📜 Live Audit Log</div>
+          <div id="logOutput" class="log-output"></div>
+        </div>
+
+      </section>
+    </div> <!-- /dashboardView -->
+  </main>
+
+  <footer class="footer">
+    Red Team v1.0 &nbsp;•&nbsp; Authorized Security Testing Only &nbsp;•&nbsp;
+    <span id="connStatus" style="color:#f59e0b">● Disconnected</span>
+  </footer>
+
+  <script src="app.js?v=4"></script>
+</body>
+
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security DoS – Dokumentasi Profil Pengujian</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text2: #94a3b8;
+      --accent: #6366f1;
+      --green: #10b981;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --cyan: #06b6d4;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.025em;
+    }
+
+    .subtitle {
+      color: var(--text2);
+      margin-bottom: 40px;
+    }
+
+    h2 {
+      font-size: 1.4rem;
+      border-left: 4px solid var(--accent);
+      padding-left: 12px;
+      margin-top: 40px;
+      margin-bottom: 16px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .badge-custom {
+      background: rgba(148, 163, 184, 0.2);
+      color: #cbd5e1;
+    }
+
+    .badge-stress {
+      background: rgba(99, 102, 241, 0.2);
+      color: #818cf8;
+    }
+
+    .badge-spike {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+    }
+
+    .badge-ramp {
+      background: rgba(6, 182, 212, 0.2);
+      color: #22d3ee;
+    }
+
+    p {
+      margin-bottom: 16px;
+    }
+
+    ul {
+      padding-left: 20px;
+      margin-bottom: 16px;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 24px;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      background: #000;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.9em;
+      color: var(--cyan);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+
+    th {
+      text-align: left;
+      color: var(--text2);
+      padding: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 8px;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+    }
+
+    .val {
+      font-weight: 600;
+      color: var(--accent);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+        <a href="index.html" class="back-link">&larr; Kembali ke Dashboard</a>
+        <a href="reports.html" class="back-link">📂 Report History</a>
+    </div>
+    <h1>Dokumentasi Profil Pengujian</h1>
+    <p class="subtitle">Panduan lengkap mengenai profil pengujian statis dan mode kustom di Red Team.</p>
+
+    <div class="card">
+      <div class="badge badge-custom">Mode Baru</div>
+      <h2>Custom (Manual)</h2>
+      <p>Gunakan profil ini jika Anda ingin menentukan sendiri angka <strong>Throughput</strong> dan
+        <strong>Durasi</strong> pengujian secara manual melalui Dashboard.
+      </p>
+      <ul>
+        <li><strong>Unit RPS/TPS:</strong> Pilih apakah angka input adalah total request (RPS) atau target transaksi
+          sukses (TPS).</li>
+        <li><strong>Kontrol Penuh:</strong> Anda menentukan durasi dan beban maksimal sesuai kebutuhan spesifik.</li>
+      </ul>
+      <p><em>Cocok untuk:</em> Pengujian cepat untuk endpoint tertentu dengan beban yang sudah diketahui.</p>
+    </div>
+
+    <div class="card">
+      <div class="badge badge-custom">Mode Normal</div>
+      <h2>Baseline (Referensi Performa)</h2>
+      <p>Profil statis untuk mengukur performa sistem dalam kondisi normal sebagai titik acuan (Benchmark).</p>
+      <table>
+        <tr>
+          <th>Tahap</th>
+          <th>Durasi</th>
+          <th>Beban</th>
+        </tr>
+        <tr>
+          <td>Baseline-Low</td>
+          <td>60s</td>
+          <td class="val">50 RPS</td>
+        </tr>
+        <tr>
+          <td>Baseline-Medium</td>
+          <td>60s</td>
+          <td class="val">200 RPS</td>
+        </tr>
+        <tr>
+          <td>Baseline-High</td>
+          <td>60s</td>
+          <td class="val">500 RPS</td>
+        </tr>
+      </table>
+      <p style="margin-top: 15px;"><em>Kasus penggunaan: Mengumpulkan metrik pembanding (Baseline) sebelum melakukan tes
+          stress.</em></p>
+      <div style="margin-top: 10px; font-size: 0.85rem; color: var(--text2);">
+        <strong>Default Headers:</strong> 
+        <code>X-Test-Mode: Baseline</code>, <code>Accept-Language: en-US...</code>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="badge badge-stress">Statik (Standard)</div>
+      <h2>Stress (Beban Bertahap)</h2>
+      <p>Profil statis untuk mencari batas maksimal sistem dengan meningkatkan beban secara agresif.</p>
+      <table>
+        <tr>
+          <th>Tahap</th>
+          <th>Durasi</th>
+          <th>Beban</th>
+        </tr>
+        <tr>
+          <td>Warm-up</td>
+          <td>30s</td>
+          <td class="val">500 RPS</td>
+        </tr>
+        <tr>
+          <td>Load</td>
+          <td>1m</td>
+          <td class="val">2.000 RPS</td>
+        </tr>
+        <tr>
+          <td>Stress</td>
+          <td>1m</td>
+          <td class="val">8.000 RPS</td>
+        </tr>
+        <tr>
+          <td>Over-stress</td>
+          <td>30s</td>
+          <td class="val">15.000 RPS</td>
+        </tr>
+        <tr>
+          <td>Maximum</td>
+          <td>10s</td>
+          <td class="val">25.000 RPS</td>
+        </tr>
+      </table>
+      <p style="margin-top: 15px;"><em>Kasus penggunaan: find breaking point dan perencanaan kapasitas
+          infrastruktur.</em></p>
+      <div style="margin-top: 10px; font-size: 0.85rem; color: var(--text2);">
+        <strong>Default Headers:</strong> 
+        <code>X-Test-Mode: Stress</code>, <code>X-Performance-Check: true</code>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="badge badge-spike">Statik (Burst)</div>
+      <h2>Spike (Lonjakan Mendadak)</h2>
+      <p>Profil statis untuk menguji ketahanan sistem terhadap lonjakan trafik instan (Burst Limit).</p>
+      <table>
+        <tr>
+          <th>Tahap</th>
+          <th>Durasi</th>
+          <th>Beban</th>
+        </tr>
+        <tr>
+          <td>Baseline</td>
+          <td>30s</td>
+          <td class="val">300 RPS</td>
+        </tr>
+        <tr>
+          <td>Pre-spike</td>
+          <td>15s</td>
+          <td class="val">800 RPS</td>
+        </tr>
+        <tr>
+          <td><strong>SPIKE</strong></td>
+          <td><strong>10s</strong></td>
+          <td class="val"><strong>25.000 RPS</strong></td>
+        </tr>
+        <tr>
+          <td>Post-spike</td>
+          <td>30s</td>
+          <td class="val">800 RPS</td>
+        </tr>
+        <tr>
+          <td>Recovery</td>
+          <td>1m</td>
+          <td class="val">300 RPS</td>
+        </tr>
+      </table>
+      <div style="margin-top: 15px; font-size: 0.85rem; color: var(--text2);">
+        <strong>Default Headers:</strong> 
+        <code>X-Test-Mode: Spike</code>, <code>X-Injection: false</code>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="badge badge-ramp">Statik (Adaptive)</div>
+      <h2>Ramp (Peningkatan Adaptif)</h2>
+      <p>Profil cerdas yang akan terus naik secara otomatis sampai terdeteksi kegagalan.</p>
+      <ul>
+        <li><strong>Start:</strong> 1.000 RPS</li>
+        <li><strong>Peningkatan:</strong> +2.000 RPS setiap tahap (60 detik per tahap)</li>
+        <li><strong>Batas Maksimal:</strong> 30.000 RPS</li>
+        <li><strong>Auto-Stop:</strong> Berhenti otomatis jika <strong>Error Rate > 5%</strong></li>
+      </ul>
+      <p><em>Kasus penggunaan: Mencari angka pasti batas Rate-Limit server secara otomatis.</em></p>
+      <div style="margin-top: 10px; font-size: 0.85rem; color: var(--text2);">
+        <strong>Default Headers:</strong> 
+        <code>X-Test-Mode: Ramp</code>, <code>X-Adaptive-Control: active</code>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Catatan Mode RPS vs TPS</h2>
+      <ul>
+        <li><strong>RPS:</strong> Menembakkan permintaan tanpa peduli status sukses (Cocok untuk Flood Test).</li>
+        <li><strong>TPS:</strong> Memastikan jumlah transaksi sukses (2xx) tercapai. Engine akan otomatis menaikkan RPS
+          jika ada error (Success-rate feedback loop).</li>
+      </ul>
+    </div>
+  </div>
+</body>
+
+</html>

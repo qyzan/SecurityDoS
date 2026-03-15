@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  security-dos:
+    build: .
+    container_name: security-dos
+    ports:
+      - "8090:8090"
+    volumes:
+      - ./configs:/app/configs
+      - ./logs:/app/logs
+    restart: unless-stopped
+    # Default: Safe Mode (--guard). 
+    # To disable (UNRESTRICTED): Uncomment the line below. 
+    # WARNING: Use UNRESTRICTED mode at your own risk!
+    # command: ["-config", "configs/config.yaml"]

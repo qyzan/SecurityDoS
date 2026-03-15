@@ -1,0 +1,31 @@
+target: https://staging.company.internal/api/health
+method: GET
+test_type: spike
+description: "Spike test - sudden traffic burst to test recovery behavior"
+max_workers: 30000
+http2: false
+keep_alive: false
+headers:
+  X-Test-Mode: Spike
+  X-Injection: "false"
+
+stages:
+  - name: Baseline
+    duration: 30s
+    rps: 300
+
+  - name: Pre-spike
+    duration: 15s
+    rps: 800
+
+  - name: SPIKE
+    duration: 10s
+    rps: 25000
+
+  - name: Post-spike
+    duration: 30s
+    rps: 800
+
+  - name: Recovery
+    duration: 60s
+    rps: 300
