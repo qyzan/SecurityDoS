@@ -44,7 +44,16 @@ Detects active defensive measures. If more than **15%** of traffic is met with H
 
 ---
 
-## 🛠️ Installation & Build
+### Quick Install (Native Go)
+
+If you have Go installed, you can install **SecurityDoS** as a global command:
+
+```bash
+go install github.com/qyzan/SecurityDoS@latest
+```
+
+> [!TIP]
+> This will compile the standalone binary and place it in your `$GOPATH/bin` (or `~/go/bin`). You can then run `SecurityDoS` from anywhere in your terminal.
 
 ### Build from Source
 
