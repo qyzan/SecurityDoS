@@ -12,10 +12,10 @@ import (
 	"time"
 	"strings"
 
-	"securitydos/api"
-	"securitydos/logger"
-	"securitydos/metrics"
-	"securitydos/safety"
+	"github.com/qyzan/SecurityDoS/api"
+	"github.com/qyzan/SecurityDoS/logger"
+	"github.com/qyzan/SecurityDoS/metrics"
+	"github.com/qyzan/SecurityDoS/safety"
 
 	"gopkg.in/yaml.v3"
 )

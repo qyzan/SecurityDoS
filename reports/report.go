@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"securitydos/metrics"
-	"securitydos/scenario"
+	"github.com/qyzan/SecurityDoS/metrics"
+	"github.com/qyzan/SecurityDoS/scenario"
 )
 
 // Report holds full test run results for export

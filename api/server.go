@@ -15,12 +15,12 @@ import (
 	"sync"
 	"time"
 
-	"securitydos/engine"
-	"securitydos/logger"
-	"securitydos/metrics"
-	"securitydos/reports"
-	"securitydos/safety"
-	"securitydos/scenario"
+	"github.com/qyzan/SecurityDoS/engine"
+	"github.com/qyzan/SecurityDoS/logger"
+	"github.com/qyzan/SecurityDoS/metrics"
+	"github.com/qyzan/SecurityDoS/reports"
+	"github.com/qyzan/SecurityDoS/safety"
+	"github.com/qyzan/SecurityDoS/scenario"
 
 	"github.com/gorilla/websocket"
 )

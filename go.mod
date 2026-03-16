@@ -1,4 +1,4 @@
-module securitydos
+module github.com/qyzan/SecurityDoS
 
 go 1.24.3
 
