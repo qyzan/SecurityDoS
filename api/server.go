@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"io/fs"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -31,14 +31,14 @@ type Server struct {
 	collector *metrics.Collector
 	log       *logger.Logger
 
-	mu        sync.Mutex
-	eng       *engine.Engine
-	testCancel context.CancelFunc
-	testID    string
-	operator  string
+	mu             sync.Mutex
+	eng            *engine.Engine
+	testCancel     context.CancelFunc
+	testID         string
+	operator       string
 	activeScenario *scenario.Scenario
 
-	srv       *http.Server
+	srv *http.Server
 
 	upgrader websocket.Upgrader
 
@@ -48,12 +48,13 @@ type Server struct {
 
 	lastProbeSuccess bool
 	lastProbeMsg     string
+	userAgents       []string
 }
 
 type AnalysisConfig struct {
-	BreakingPointRate    float64
-	LatencyThresholdMs   float64
-	SecurityTriggerRate  float64
+	BreakingPointRate   float64
+	LatencyThresholdMs  float64
+	SecurityTriggerRate float64
 }
 
 // StartRequest is the payload for POST /api/start
@@ -75,7 +76,7 @@ type StatusResponse struct {
 }
 
 // NewServer creates the API server
-func NewServer(guard *safety.Guard, col *metrics.Collector, log *logger.Logger, ana AnalysisConfig, dashboard fs.FS, configs fs.FS) *Server {
+func NewServer(guard *safety.Guard, col *metrics.Collector, log *logger.Logger, ana AnalysisConfig, dashboard fs.FS, configs fs.FS, userAgents []string) *Server {
 	s := &Server{
 		guard:          guard,
 		collector:      col,
@@ -83,6 +84,7 @@ func NewServer(guard *safety.Guard, col *metrics.Collector, log *logger.Logger, 
 		analysisConfig: ana,
 		dashboardFS:    dashboard,
 		configsFS:      configs,
+		userAgents:     userAgents,
 		upgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool { return true },
 		},
@@ -126,7 +128,7 @@ func (s *Server) auth(next http.Handler) http.Handler {
 		} else {
 			token = r.URL.Query().Get("token")
 		}
-		
+
 		if err := s.guard.Authorize(token); err != nil {
 			jsonError(w, "Unauthorized", http.StatusUnauthorized)
 			return
@@ -180,7 +182,7 @@ func (s *Server) handleGetProfiles(w http.ResponseWriter, r *http.Request) {
 
 	// 1. Scan disk
 	diskFiles, _ := filepath.Glob("configs/scenario_*.yaml")
-	
+
 	// 2. Scan embedded
 	embedFiles, _ := fs.Glob(s.configsFS, "scenario_*.yaml")
 
@@ -196,16 +198,16 @@ func (s *Server) handleGetProfiles(w http.ResponseWriter, r *http.Request) {
 		} else {
 			data, err = os.ReadFile(path)
 		}
-		
+
 		if err != nil {
 			return
 		}
-		
+
 		sc, err := scenario.Parse(data)
 		if err != nil {
 			return
 		}
-		
+
 		// Avoid duplicates if same file exists on disk and embedded
 		if !seenURLs[sc.Target+string(sc.TestType)] {
 			profiles = append(profiles, *sc)
@@ -309,19 +311,20 @@ func (s *Server) handleStart(w http.ResponseWriter, r *http.Request) {
 
 	// Create engine
 	cfg := engine.EngineConfig{
-		Target:     sc.Target,
-		Method:     sc.Method,
-		Headers:    sc.Headers,
-		Timeout:    reqTimeout, // Use parsed timeout
-		HTTP2:      sc.HTTP2,
-		KeepAlive:  sc.KeepAlive,
-		MaxWorkers: sc.MaxWorkers,
-		InitialRPS: sc.Stages[0].RPS,
-		Unit:       sc.Unit,
+		Target:          sc.Target,
+		Method:          sc.Method,
+		Headers:         sc.Headers,
+		Timeout:         reqTimeout, // Use parsed timeout
+		HTTP2:           sc.HTTP2,
+		KeepAlive:       sc.KeepAlive,
+		MaxWorkers:      sc.MaxWorkers,
+		InitialRPS:      sc.Stages[0].RPS,
+		Unit:            sc.Unit,
 		UserAgentPrefix: sc.UserAgentPrefix,
-		Evasion:    sc.Evasion,
-		FollowRedirect: sc.FollowRedirect,
-		TestID:     testID,
+		Evasion:         sc.Evasion,
+		FollowRedirect:  sc.FollowRedirect,
+		UserAgents:      s.userAgents,
+		TestID:          testID,
 	}
 
 	s.collector.Reset()
@@ -349,38 +352,38 @@ func (s *Server) handleStart(w http.ResponseWriter, r *http.Request) {
 		logger.WithOperator(operator),
 	)
 
-		// Run engine asynchronously
-		go func() {
-			defer s.guard.MarkTestStop()
-			defer cancel()
-			if err := eng.Run(ctx, sc.Stages); err != nil {
-				s.log.Error("Engine stopped: " + err.Error())
-			}
-			s.log.Info(fmt.Sprintf("Test completed: %s", testID))
+	// Run engine asynchronously
+	go func() {
+		defer s.guard.MarkTestStop()
+		defer cancel()
+		if err := eng.Run(ctx, sc.Stages); err != nil {
+			s.log.Error("Engine stopped: " + err.Error())
+		}
+		s.log.Info(fmt.Sprintf("Test completed: %s", testID))
 
-			// Per request user: Perform post-test health check probe
-			s.log.Info("Running post-test recovery health probe...")
-			probeSuccess, probeMsg := eng.VerifyTargetHealth()
+		// Per request user: Perform post-test health check probe
+		s.log.Info("Running post-test recovery health probe...")
+		probeSuccess, probeMsg := eng.VerifyTargetHealth()
 
-			s.mu.Lock()
-			s.lastProbeSuccess = probeSuccess
-			s.lastProbeMsg = probeMsg
-			s.mu.Unlock()
+		s.mu.Lock()
+		s.lastProbeSuccess = probeSuccess
+		s.lastProbeMsg = probeMsg
+		s.mu.Unlock()
 
-			if probeSuccess {
-				s.log.Info(fmt.Sprintf("Recovery Pulse: Target is UP (%s)", probeMsg))
-			} else {
-				s.log.Warn(fmt.Sprintf("Recovery Pulse: Target is DOWN/ERROR (%s)", probeMsg))
-			}
+		if probeSuccess {
+			s.log.Info(fmt.Sprintf("Recovery Pulse: Target is UP (%s)", probeMsg))
+		} else {
+			s.log.Warn(fmt.Sprintf("Recovery Pulse: Target is DOWN/ERROR (%s)", probeMsg))
+		}
 
-			// Auto-generate reports
-			s.collector.Flush()
-			history := s.collector.History()
-			rep := reports.Build(testID, operator, sc, history, probeSuccess, probeMsg)
-			_ = rep.SaveJSON(fmt.Sprintf("logs/report_%s.json", testID))
-			_ = rep.SaveMarkdown(fmt.Sprintf("logs/report_%s.md", testID))
-			s.log.Info(fmt.Sprintf("Reports saved to logs/report_%s.{json,md}", testID))
-		}()
+		// Auto-generate reports
+		s.collector.Flush()
+		history := s.collector.History()
+		rep := reports.Build(testID, operator, sc, history, probeSuccess, probeMsg)
+		_ = rep.SaveJSON(fmt.Sprintf("logs/report_%s.json", testID))
+		_ = rep.SaveMarkdown(fmt.Sprintf("logs/report_%s.md", testID))
+		s.log.Info(fmt.Sprintf("Reports saved to logs/report_%s.{json,md}", testID))
+	}()
 
 	jsonOK(w, map[string]string{
 		"status":  "started",
@@ -627,8 +630,6 @@ func (s *Server) handleReportsList(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			continue
 		}
-
-		// Use anonymous struct for fast partial decode
 		var meta struct {
 			Meta struct {
 				TestID      string    `json:"test_id"`

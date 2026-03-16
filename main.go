@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	"strings"
 
 	"securitydos/api"
 	"securitydos/logger"
@@ -24,6 +25,9 @@ var dashboardEmbed embed.FS
 
 //go:embed all:configs/*
 var configsEmbed embed.FS
+
+//go:embed random-data/agents.txt
+var agentsData string
 
 // AppConfig is parsed from config.yaml
 type AppConfig struct {
@@ -90,6 +94,15 @@ func main() {
 	collector := metrics.NewCollector(3600)
 	defer collector.Stop()
 
+	// Parse User-Agents
+	var userAgents []string
+	for _, line := range strings.Split(agentsData, "\n") {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			userAgents = append(userAgents, line)
+		}
+	}
+
 	// API server
 	dashboardFS, _ := fs.Sub(dashboardEmbed, "dashboard")
 	configsFS, _ := fs.Sub(configsEmbed, "configs")
@@ -97,7 +110,7 @@ func main() {
 		BreakingPointRate:   cfg.Analysis.BreakingPointRate,
 		LatencyThresholdMs:  cfg.Analysis.LatencyThresholdMs,
 		SecurityTriggerRate: cfg.Analysis.SecurityTriggerRate,
-	}, dashboardFS, configsFS)
+	}, dashboardFS, configsFS, userAgents)
 
 	log.Info(fmt.Sprintf("Dashboard available at http://localhost%s", addr))
 	if *enableGuard {
